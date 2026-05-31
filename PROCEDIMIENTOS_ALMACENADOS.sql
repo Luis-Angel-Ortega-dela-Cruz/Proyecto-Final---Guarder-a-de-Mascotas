@@ -59,14 +59,14 @@ GO
 
 
 
---- 6. Cancelar una venta en lÌnea (no olvide actualizar el stock y la regla de negocio)
+--- 6. Cancelar una venta en l√≠nea (no olvide actualizar el stock y la regla de negocio)
 CREATE PROCEDURE SP_CANCELAR_VENTA_LINEA
     @VENTA_ID NUMERIC(10,0)
 AS
 BEGIN
     DECLARE @TARIFA NUMERIC(10,2);
 
-    /* Se verifica que exista la venta en lÌnea */
+    /* Se verifica que exista la venta en l√≠nea */
     IF NOT EXISTS(SELECT * FROM VENTA
     WHERE VENTA_ID = @VENTA_ID AND TIPO = 'L')
     BEGIN
@@ -74,7 +74,7 @@ BEGIN
         RETURN;
     END
 
-    /* Se verifica que no estÈ cancelada */
+    /* Se verifica que no est√© cancelada */
     IF EXISTS(SELECT * FROM LINEA
     WHERE VENTA_ID = @VENTA_ID AND ESTADO_ID = 4)
     BEGIN
@@ -82,7 +82,7 @@ BEGIN
         RETURN;
     END
 
-    /* Calcular tarifa de cancelaciÛn (CS15) */
+    /* Calcular tarifa de cancelaci√≥n (CS15) */
     SELECT @TARIFA = ISNULL(SUM(COSTO_TOTAL),0) * 0.20
     FROM CARRITO_LINEA
     WHERE VENTA_ID = @VENTA_ID;
@@ -103,7 +103,26 @@ BEGIN
     PRINT 'Venta cancelada correctamente';
 END
 GO
+	
 
+--7.Realice un procedimiento almacenado para borrar usuario, recibe como parametros el nombre de usuario 
+
+CREATE PROCEDURE pusuBorrarUsuario
+    @Usuario VARCHAR(40)
+AS
+BEGIN
+    BEGIN TRY
+        DELETE FROM CLIENTE
+        WHERE USUARIO = @Usuario;
+
+        PRINT 'Usuario eliminado correctamente';
+    END TRY
+    BEGIN CATCH
+        PRINT ERROR_MESSAGE();
+    END CATCH
+END
+GO
+	
 
 --- 8. Registrar productos en un carrito
 
@@ -131,7 +150,7 @@ BEGIN
             RETURN;
         END
 
-		/*Verifica si el producto est· en el carrito*/
+		/*Verifica si el producto est√° en el carrito*/
         IF EXISTS (SELECT * FROM CARRITO_LINEA WHERE VENTA_ID = @VENTA_ID
         AND INV_CRETRO_REGIONAL_ID = @INVENTARIO_ID)
         BEGIN
@@ -190,5 +209,112 @@ BEGIN
         RETURN;
     END
     PRINT 'La venta no existe';
+END
+GO
+
+
+-- 9. Actualizar un producto del carrito de compra y el stock-
+CREATE OR ALTER PROCEDURE SP_ACTUALIZAR_CARRITO_STOCK
+    @ID_CARRITO INT,
+    @CANTIDAD INT,
+    @PRODUCTO_ID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Validamos el stock
+    IF NOT EXISTS (
+        SELECT 1
+        FROM PRODUCTO
+        WHERE PRODUCTO_ID = @PRODUCTO_ID
+          AND STOCK >= @CANTIDAD
+    )
+    BEGIN
+        PRINT 'No hay suficiente stock';
+        RETURN;
+    END
+
+    -- Se actualiza el carrito fisico
+    IF EXISTS (
+        SELECT 1 FROM CARRITO_FISICO WHERE ID_CARRITO = @ID_CARRITO
+    )
+    BEGIN
+        UPDATE CARRITO_FISICO
+        SET CANTIDAD = @CANTIDAD
+        WHERE ID_CARRITO = @ID_CARRITO;
+    END
+
+    -- Se actualiza el carrito en linea
+    ELSE IF EXISTS (
+        SELECT 1 FROM CARRITO_EN_LINEA WHERE ID_CARRITO = @ID_CARRITO
+    )
+    BEGIN
+        UPDATE CARRITO_EN_LINEA
+        SET CANTIDAD = @CANTIDAD
+        WHERE ID_CARRITO = @ID_CARRITO;
+    END
+
+    -- Se descuenta el stock
+    UPDATE PRODUCTO
+    SET STOCK = STOCK - @CANTIDAD
+    WHERE PRODUCTO_ID = @PRODUCTO_ID;
+
+    PRINT 'Carrito y stock actualizados correctamente';
+END;
+GO
+
+
+
+--11. Bprrar un carrito 
+
+CREATE OR ALTER PROCEDURE SP_ELIMINAR_CARRITO
+    @ID_CARRITO INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Eliminamos el carrito fisico
+    IF EXISTS (
+        SELECT 1 FROM CARRITO_FISICO WHERE ID_CARRITO = @ID_CARRITO
+    )
+    BEGIN
+        DELETE FROM CARRITO_FISICO
+        WHERE ID_CARRITO = @ID_CARRITO;
+
+        PRINT 'El carrito f√≠sico fue eliminado';
+        RETURN;
+    END
+
+    -- Eliminamos el carrito en line
+    IF EXISTS (
+        SELECT 1 FROM CARRITO_EN_LINEA WHERE ID_CARRITO = @ID_CARRITO
+    )
+    BEGIN
+        DELETE FROM CARRITO_EN_LINEA
+        WHERE ID_CARRITO = @ID_CARRITO;
+
+        PRINT 'El carrito en l√≠nea  fue eliminado';
+        RETURN;
+    END
+
+    PRINT 'No se encontr√≥ el carrito';
+END;
+GO
+
+
+
+--12. Buscador de productos usando like
+
+CREATE PROCEDURE pusuBuscarProducto
+    @Nombre VARCHAR(40)
+AS
+BEGIN
+    SELECT
+        PRODUCTO_ID,
+        NOMBRE,
+        COSTO,
+        DESCRIPCION
+    FROM PRODUCTO
+    WHERE NOMBRE LIKE '%' + @Nombre + '%';
 END
 GO
