@@ -31,6 +31,39 @@ end;
 go
 
 
+--TRIGGER 2
+--Trigger que valida que un cuidador no tenga más de 5 mascotas asignadas en una misma fecha. 
+
+CREATE OR ALTER TRIGGER trg_ValidarLimiteCuidador
+ON ESTANCIA
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Verificar solo si se modificó el ID_CUIDADOR o FECHA_INICIO
+    IF UPDATE(ID_CUIDADOR) OR UPDATE(FECHA_INICIO)
+    BEGIN
+        IF EXISTS (SELECT 1 FROM 
+		(
+                -- Contar mascotas por cuidador en cada fecha
+                SELECT e.ID_CUIDADOR, CAST(e.FECHA_INICIO AS DATE) AS FECHA, COUNT(*) AS TOTAL_MASCOTAS
+                FROM ESTANCIA e
+                WHERE e.ID_CUIDADOR IN (SELECT ID_CUIDADOR FROM inserted)
+                GROUP BY e.ID_CUIDADOR, CAST(e.FECHA_INICIO AS DATE)
+            ) AS Conteo
+            WHERE Conteo.TOTAL_MASCOTAS > 5
+        )
+        BEGIN
+            RAISERROR('ERROR: Un cuidador no puede tener más de 5 mascotas asignadas en un mismo día.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+    END
+END;
+
+
+
 ---------------------------------------------------------------
 --PROCEDIMIENTOS ALMACENADOS
 ---------------------------------------------------------------
