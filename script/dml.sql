@@ -63,6 +63,34 @@ BEGIN
 END;
 
 
+--TRIGGER 3
+---Controla el inventario de medicamentos al registrar una consulta.
+-- Valida que haya suficiente stock antes de recetar y descuenta
+-- automáticamente la cantidad del inventario del centro.
+---(ES EL QUE YA HABIA HECHO. AL FINAL LE HICE UNOS CAMBIOS XD, PERO LO PONGO POR SI SIRVE)
+CREATE TRIGGER tr_ActualizarInventarioMedicoConsulta
+ON INV_MED_CONSULTA
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF EXISTS (SELECT 1
+        FROM INVENTARIO_MEDICO im
+        JOIN inserted ins ON im.INV_MED_ID = ins.INV_MED_ID
+        WHERE im.CANTIDAD < ins.CANTIDAD
+    )
+    BEGIN
+        RAISERROR ('No hay suficiente stock de este medicamento en el inventario del centro.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+
+    UPDATE im
+    SET im.CANTIDAD = im.CANTIDAD - ins.CANTIDAD
+    FROM INVENTARIO_MEDICO im
+    JOIN inserted ins ON im.INV_MED_ID = ins.INV_MED_ID;
+END;
 
 ---------------------------------------------------------------
 --PROCEDIMIENTOS ALMACENADOS
