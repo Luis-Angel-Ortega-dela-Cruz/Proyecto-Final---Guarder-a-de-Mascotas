@@ -1,8 +1,12 @@
+use [guarderia_mascotas]
+go
+
+
 ---Pruebas para procedimientos almacenados
 ------------------------------------------------
 ---Prueba de SP 1
 ------------------------------------------------
-EXEC RegistrarMascotaEstanciaBrazalete
+EXEC sp_RegistrarMascotaEstanciaBrazalete
     @MascotaId = 30,
     @Genero = 'M',
     @Rasgo = 'Muy jugueton',
@@ -45,13 +49,13 @@ where b.BRAZALETE_ID = 35;
 ------------------------------------------------
 --Nueva consulta para probar:
 INSERT INTO CONSULTA (CONSULTA_ID,DIAGNOSTICO, FECHA,DETALLES,EMPLEADO_ID,MASCOTA_ID)
-VALUES(NEXT VALUE FOR seq_consulta,'InfecciÛn estomacal',GETDATE(),'Se receta medicamento y revisiÛn posterior',1004,2);
+VALUES(NEXT VALUE FOR seq_consulta,'Infecci√≥n estomacal',GETDATE(),'Se receta medicamento y revisi√≥n posterior',1004,2);
 
 --Validar stock actual de medicamento
 select * from INVENTARIO_MEDICO where centro_id = 1;
 go
 
---Prueba de la ejecuciÛn del sp
+--Prueba de la ejecuci√≥n del sp
 EXEC sp_registra_medicamento_consulta
     @consulta_id = 25,
     @medicamento_id = 10,
@@ -68,14 +72,14 @@ select * from INVENTARIO_MEDICO where centro_id = 1;
 go
 
 ------------------------------------------------
----Prueba de SP 3
+---Prueba de SP 3 y TIRGGER tr_actualiza_costo_consulta
 ------------------------------------------------
 DECLARE @id_consulta numeric(10,0);
 
---Permite la creaciÛn de la consulta, y de un medicamento para dicha consulta
+--Permite la creaci√≥n de la consulta, y de un medicamento para dicha consulta
 EXEC sp_registra_consulta_tratamiento
-    @diagnostico = 'InfecciÛn estomacal',
-    @tratamiento = 'Administrar medicamento cada 12 horas durante 5 dÌas.',
+    @diagnostico = 'Infecci√≥n estomacal',
+    @tratamiento = 'Administrar medicamento cada 12 horas durante 5 d√≠as.',
     @empleado_id = 1004,
     @mascota_id = 2,
     @centro_id = 1,
@@ -83,7 +87,7 @@ EXEC sp_registra_consulta_tratamiento
     @cantidad = 2,
     @consulta_id = @id_consulta OUTPUT;
 
---Para agregar m·s medicamentos, se empela el procedimeinto almacenado 3 (sp_registra_medicamento_consulta)
+--Para agregar m√°s medicamentos, se empela el procedimeinto almacenado 3 (sp_registra_medicamento_consulta)
 EXEC sp_registra_medicamento_consulta
     @consulta_id = @id_consulta,
     @medicamento_id = 5,
@@ -102,6 +106,58 @@ on im.INV_MED_ID = inv.INV_MED_ID
 where c.CONSULTA_ID=@id_consulta;
 go
 
+------------------------------------------------
+---Prueba de SP 5 y TIRGGER tr_actualiza_costo_venta_fisica
+------------------------------------------------
+
+--Cliente sin compras f√≠sicas
+select c.NOMBRE, v.VENTA_ID, v.TIPO
+from CLIENTE c
+left join VENTA v
+on v.CLIENTE_ID = c.CLIENTE_ID
+where c.CLIENTE_ID = 20;
+
+--Revisi√≥n del inventario 
+select inv.CENTRO_ID, inv.PRODUCTO_ID, inv.EXISTENCIAS
+from INV_CENTRO_NORMAL inv
+left join PRODUCTO p
+on inv.PRODUCTO_ID = p.PRODUCTO_ID
+where inv.CENTRO_ID = (select CENTRO_ID from INV_CENTRO_NORMAL 
+						where INV_CRETRO_NORMAL_ID = 3); 
+
+--Ingreso de venta f√≠sica y 3 productos
+declare @venta_generada numeric(10,0);
+
+exec SP_REGISTRAR_VENTA_FISICA
+    @cliente_id = 20,
+    @id_encargado_tienda = 1009,
+    @comision = 0,
+    @inventario_id = 3,
+    @cantidad = 2,
+    @venta_id = @venta_generada output;
+
+exec SP_AGREGAR_PRODUCTO_CARRITO
+    @VENTA_ID = @venta_generada,
+    @INVENTARIO_ID = 5,
+    @CANTIDAD = 1;
+
+exec SP_AGREGAR_PRODUCTO_CARRITO
+    @VENTA_ID = @venta_generada,
+    @INVENTARIO_ID = 7,
+    @CANTIDAD = 3;
+
+--Resultado posterior a la venta f√≠sica
+select c.NOMBRE as nombre_cliente,v.VENTA_ID,v.TIPO as tipo_venta,v.COSTO as costo_venta, icn.EXISTENCIAS, 
+ cf.CANTIDAD as cantidad_producto, cf.COSTO_TOTAL as costo_por_productos, icn.PRODUCTO_ID, v.FECHA
+from CLIENTE c
+left join VENTA v
+on v.CLIENTE_ID = c.CLIENTE_ID
+left join CARRITO_FISICO cf
+on cf.VENTA_ID = v.VENTA_ID
+left join INV_CENTRO_NORMAL icn
+on cf.INV_CRETRO_NORMAL_ID = icn.INV_CRETRO_NORMAL_ID
+where c.CLIENTE_ID = 20 
+and v.TIPO = 'F' ; 
 
 ------------------------------------------------
 ---Prueba de SP 6
@@ -109,14 +165,14 @@ go
 --Cancelar la venta en linea = 9
 EXEC SP_CANCELAR_VENTA_LINEA 9;
 
--- Ver que quedÛ CANCELADA
+-- Ver que qued√≥ CANCELADA
 select v.VENTA_ID, ev.NOMBRE as ESTADO, l.TARIFA_CANCELACION
 from VENTA v
 join LINEA l on v.VENTA_ID = l.VENTA_ID
 join ESTADO_VENTA ev on l.ESTADO_ID = ev.ESTADO_ID
 where v.VENTA_ID = 9;
 
--- Ver que el STOCK aumentÛ (se devolvieron los productos)
+-- Ver que el STOCK aument√≥ (se devolvieron los productos)
 select p.NOMBRE, cl.CANTIDAD, icr.EXISTENCIAS as STOCK_NUEVO
 from CARRITO_LINEA cl
 join INV_CENTRO_REGIONAL icr on cl.INV_CRETRO_REGIONAL_ID = icr.INV_CRETRO_REGIONAL_ID
@@ -134,10 +190,10 @@ EXEC SP_AGREGAR_PRODUCTO_CARRITO
     @INVENTARIO_ID = 4,
     @CANTIDAD = 1;
 
--- Verificar que se agregÛ al CARRITO_FISICO
+-- Verificar que se agreg√≥ al CARRITO_FISICO
 SELECT * from CARRITO_FISICO WHERE VENTA_ID = 1;
 
--- Verificar que bajÛ el stock en INV_CENTRO_NORMAL
+-- Verificar que baj√≥ el stock en INV_CENTRO_NORMAL
 SELECT EXISTENCIAS FROM INV_CENTRO_NORMAL WHERE INV_CRETRO_NORMAL_ID = 4;
 
 
@@ -147,8 +203,106 @@ EXEC SP_AGREGAR_PRODUCTO_CARRITO
     @INVENTARIO_ID = 4,
     @CANTIDAD = 1;
 
--- Verificar que se agregÛ al CARRITO_LINEA
+-- Verificar que se agreg√≥ al CARRITO_LINEA
 SELECT * FROM CARRITO_LINEA WHERE VENTA_ID = 6;
 
--- Verificar que bajÛ el stock en INV_CENTRO_REGIONAL
+-- Verificar que baj√≥ el stock en INV_CENTRO_REGIONAL
 SELECT EXISTENCIAS FROM INV_CENTRO_REGIONAL WHERE INV_CRETRO_REGIONAL_ID = 4;
+
+select * from FISICA;
+
+
+------------------------------------------------
+---Prueba de trigger 5 (TR_ACTUALIZA_COMISION_VENTA_FISICA)
+------------------------------------------------
+
+declare @venta_generada numeric(10,0);
+
+--Sueldo original
+select sueldo from EMPLEADO
+where EMPLEADO_id = 1009;
+
+--Creaci√≥n de venta f√≠sica
+exec SP_REGISTRAR_VENTA_FISICA
+    @cliente_id = 13,
+    @id_encargado_tienda = 1009,
+    @comision = 0,
+    @inventario_id = 3,
+    @cantidad = 2,
+    @venta_id = @venta_generada output;
+
+exec SP_AGREGAR_PRODUCTO_CARRITO
+    @VENTA_ID = @venta_generada,
+    @INVENTARIO_ID = 5,
+    @CANTIDAD = 1;
+
+--Comision resultante
+select venta_id, comision from FISICA
+where VENTA_ID = @venta_generada;
+
+--Nuevo sueldo
+select sueldo from EMPLEADO
+where EMPLEADO_id = 1009;
+
+--Confirmar que se hizo compra
+select * 
+from CLIENTE c
+left join venta v
+on c.CLIENTE_ID = v.CLIENTE_ID
+where c.CLIENTE_ID = 13;
+
+------------------------------------------------
+---Prueba de SP 10
+------------------------------------------------
+
+--Ventas en linea de cliente 16
+select * from CLIENTE c
+left join VENTA l
+on l.CLIENTE_ID = c.CLIENTE_ID
+where C.CLIENTE_ID=16;
+
+--Insertar venta en linea
+declare @venta_generada numeric(10,0);
+
+select * from INV_CENTRO_REGIONAL;
+
+exec SP_REGISTRAR_VENTA_LINEA
+    @cliente_id = 16,
+    @estado_id = 1,
+    @tarifa_cancelacion = null,
+    @inventario_id = 2,
+    @cantidad = 3,
+    @venta_id = @venta_generada output;
+
+exec SP_AGREGAR_PRODUCTO_CARRITO
+    @VENTA_ID = @venta_generada,
+    @INVENTARIO_ID = 4,
+    @CANTIDAD = 2;
+
+--Verificar que se haya creado la venta f√≠sica
+select * from CLIENTE c
+left join VENTA l
+on l.CLIENTE_ID = c.CLIENTE_ID
+where C.CLIENTE_ID=16;
+
+--Verificar que se actualiz√≥ el stock
+select * from INV_CENTRO_REGIONAL;
+GO
+
+------------------------------------------------
+---Prueba de trigger 7 (TR_ESTANCIA_ACTUAL_HISTORICO)
+------------------------------------------------
+select * from EMPLEADO;
+
+begin transaction 
+	select * from ESTANCIA;
+
+	select * from HISTORICO_ESTANCIA;
+
+	insert into ESTANCIA(ID_ESTANCIA, FECHA_INICIO, DIAS_ESTANCIA, CENTRO_ID, MASCOTA_ID, ID_CUIDADOR, ESTACION_ID)
+	values(30, getdate(), 5, 1, 1, 1007, 1);
+
+	select * from ESTANCIA;
+
+	select * from HISTORICO_ESTANCIA;
+rollback transaction
