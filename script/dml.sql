@@ -835,3 +835,75 @@ BEGIN
     WHERE NOMBRE LIKE '%' + @Nombre + '%';
 END
 GO
+
+
+---------------------------------------------------------------
+--VISTAS
+---------------------------------------------------------------
+
+/*
+VISTA 1
+Muestra mascotas junto con la informacion de su dueño.
+*/
+
+CREATE VIEW vw_MascotasClientes AS
+SELECT m.MASCOTA_ID, m.NOMBRE AS NOMBRE_MASCOTA, r.NOMBRE AS RAZA, e.NOMBRE AS ESPECIE, c.CLIENTE_ID,
+c.NOMBRE + ' ' + c.AP_PAT + ' ' + c.AP_MAT AS PROPIETARIO, c.CORREO, c.DOMICILIO
+
+FROM MASCOTA m
+INNER JOIN CLIENTE c
+ON m.CLIENTE_ID = c.CLIENTE_ID
+INNER JOIN RAZA r
+ON m.RAZA_ID = r.RAZA_ID
+INNER JOIN ESPECIE e
+ON r.ESPECIE_ID = e.ESPECIE_ID;
+
+GO
+
+---ejecutar VISTA
+SELECT * FROM vw_MascotasClientes;
+
+
+/*
+VISTA 2
+Consulta a la veterinaria con mascota y su veterinario.
+*/
+
+CREATE VIEW vw_ConsultasVeterinarias AS
+SELECT co.CONSULTA_ID, co.FECHA, co.DIAGNOSTICO, co.DETALLES, co.COSTO,
+m.NOMBRE AS MASCOTA, emp.NOMBRE + ' ' + emp.AP_PAT + ' ' + emp.AP_MAT AS VETERINARIO
+
+FROM CONSULTA co
+INNER JOIN MASCOTA m
+ON co.MASCOTA_ID = m.MASCOTA_ID
+INNER JOIN EMPLEADO emp
+ON co.EMPLEADO_ID = emp.EMPLEADO_ID;
+GO
+
+---EJECUTAR VISTA
+SELECT * FROM vw_ConsultasVeterinarias;
+
+
+/*
+VISTA 3
+Informacion completa de las estancias en guarderia.
+*/
+
+CREATE VIEW vw_EstanciasGuarderia AS
+SELECT es.ID_ESTANCIA, es.FECHA_INICIO, es.FECHA_FIN, es.DIAS_ESTANCIA, es.COSTO, m.NOMBRE AS MASCOTA, 
+cli.NOMBRE + ' ' + cli.AP_PAT + ' ' + cli.AP_MAT AS PROPIETARIO, c.NOMBRE AS CENTRO,
+emp.NOMBRE + ' ' + emp.AP_PAT + ' ' + emp.AP_MAT AS CUIDADOR
+
+FROM ESTANCIA es
+INNER JOIN MASCOTA m
+ON es.MASCOTA_ID = m.MASCOTA_ID
+INNER JOIN CLIENTE cli
+ON m.CLIENTE_ID = cli.CLIENTE_ID
+INNER JOIN CENTRO c
+ON es.CENTRO_ID = c.CENTRO_ID
+INNER JOIN EMPLEADO emp
+ON es.ID_CUIDADOR = emp.EMPLEADO_ID;
+GO
+
+---EJECUTAR VISTA
+SELECT * FROM vw_EstanciasGuarderia;
