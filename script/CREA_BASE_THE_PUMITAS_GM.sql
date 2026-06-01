@@ -79,7 +79,7 @@ CREATE TABLE EMPLEADO(
     CENTRO_ID        numeric(5, 0)     NOT NULL,
     DOMICILIO        varchar(100)      NOT NULL,
     USUARIO          varchar(40)       NOT NULL,
-    CONTRASEﾑA       varchar(20)       NOT NULL,
+    CONTRASEﾃ羨       varchar(20)       NOT NULL,
     SUELDO           numeric(10, 2)    NOT NULL,
     CONSTRAINT PK2 PRIMARY KEY NONCLUSTERED (EMPLEADO_ID), 
     CONSTRAINT RefCENTRO10 FOREIGN KEY (CENTRO_ID)
@@ -706,23 +706,23 @@ ELSE
 go
 
 /* 
- * TABLE: ESTACION_AﾑO 
+ * TABLE: ESTACION_Aﾃ前 
  */
 
-CREATE TABLE ESTACION_AﾑO(
+CREATE TABLE ESTACION_Aﾃ前(
     ESTACION_ID    numeric(1, 0)    NOT NULL,
     NOMBRE         varchar(40)      NOT NULL,
     CONSTRAINT PK26 PRIMARY KEY NONCLUSTERED (ESTACION_ID),
-	CONSTRAINT uk_nombre_estacion_a UNIQUE(nombre)
+	CONSTRAINT uk_nombre_estacion_aﾃｱo UNIQUE(nombre)
 )
 go
 
 
 
-IF OBJECT_ID('ESTACION_AﾑO') IS NOT NULL
-    PRINT '<<< CREATED TABLE ESTACION_AﾑO >>>'
+IF OBJECT_ID('ESTACION_Aﾃ前') IS NOT NULL
+    PRINT '<<< CREATED TABLE ESTACION_Aﾃ前 >>>'
 ELSE
-    PRINT '<<< FAILED CREATING TABLE ESTACION_AﾑO >>>'
+    PRINT '<<< FAILED CREATING TABLE ESTACION_Aﾃ前 >>>'
 go
 
 /* 
@@ -745,8 +745,8 @@ CREATE TABLE ESTANCIA(
     REFERENCES MASCOTA(MASCOTA_ID),
     CONSTRAINT RefCUIDADOR36 FOREIGN KEY (ID_CUIDADOR)
     REFERENCES CUIDADOR(EMPLEADO_ID),
-    CONSTRAINT RefESTACION_AﾑO37 FOREIGN KEY (ESTACION_ID)
-    REFERENCES ESTACION_AﾑO(ESTACION_ID),
+    CONSTRAINT RefESTACION_Aﾃ前37 FOREIGN KEY (ESTACION_ID)
+    REFERENCES ESTACION_Aﾃ前(ESTACION_ID),
     CONSTRAINT RefCENTRO13 FOREIGN KEY (CENTRO_ID)
     REFERENCES CENTRO(CENTRO_ID)
 )
@@ -915,7 +915,7 @@ go
 CREATE TABLE TARJETA(
     TARJETA_ID    numeric(10, 0)    NOT NULL,
     MES_EXPIRA    numeric(2, 0)     NOT NULL,
-    AﾑO_EXPIRA    numeric(4, 0)     NOT NULL,
+    Aﾃ前_EXPIRA    numeric(4, 0)     NOT NULL,
     NUMERO        varchar(20)       NOT NULL,
     TIPO          varchar(10)           NOT NULL,
     CLIENTE_ID    numeric(10, 0)    NOT NULL,
@@ -959,10 +959,17 @@ ELSE
     PRINT '<<< FAILED CREATING TABLE TELEFONO_EMPLEADO >>>'
 go
 
---Creaci de secuencias
+--Creaciﾃｳn de secuencias
 
 CREATE SEQUENCE seq_consulta
 AS numeric(10,0)
 START WITH 25
 INCREMENT BY 1;
 GO
+
+create sequence seq_historico_estancia
+as numeric(10,0)
+start with 46
+increment by 1;
+go
+
