@@ -1,8 +1,8 @@
---AUTORES: Ortega de la Cruz Luis Angel 
---		   Quezada YÈpez Leonardo AndrÈ 
---		   RodrÌguez Ruiz Diana Carolina
++--AUTORES: Ortega de la Cruz Luis Angel 
+--		   Quezada Y√©pez Leonardo Andr√© 
+--		   Rodr√≠guez Ruiz Diana Carolina
 --FECHA: 30/05/2026
---DESCRIPCI”N: CreaciÛn de triggers, procedimientos almacenados, funciones y vistas solicitadas.
+--DESCRIPCI√ìN: Creaci√≥n de triggers, procedimientos almacenados, funciones y vistas solicitadas.
 --				Las pruebas son realizadas en trigger.sql
 
 
@@ -16,7 +16,7 @@ go
 
 /*
 VISTA 1
-Muestra mascotas junto con la informacion de su dueÒo.
+Muestra mascotas junto con la informacion de su due√±o.
 */
 
 CREATE VIEW vw_MascotasClientes AS
@@ -34,8 +34,8 @@ ON r.ESPECIE_ID = e.ESPECIE_ID;
 GO
 
 ---ejecutar VISTA
-SELECT * FROM vw_MascotasClientes;
-
+--SELECT * FROM vw_MascotasClientes;
+--go
 
 /*
 VISTA 2
@@ -54,8 +54,8 @@ ON co.EMPLEADO_ID = emp.EMPLEADO_ID;
 GO
 
 ---EJECUTAR VISTA
-SELECT * FROM vw_ConsultasVeterinarias;
-
+--SELECT * FROM vw_ConsultasVeterinarias;
+--go
 
 
 /*
@@ -80,8 +80,8 @@ ON es.ID_CUIDADOR = emp.EMPLEADO_ID;
 GO
 
 ---EJECUTAR VISTA
-SELECT * FROM vw_EstanciasGuarderia;
-
+--SELECT * FROM vw_EstanciasGuarderia;
+--go
 ---------------------------------------------------------------
 --TRIGGERS
 ---------------------------------------------------------------
@@ -133,14 +133,14 @@ end;
 go
 
 --TRIGGER 3
---Trigger que valida que un cuidador no tenga m·s de 5 mascotas asignadas en una misma fecha. 
+--Trigger que valida que un cuidador no tenga m√°s de 5 mascotas asignadas en una misma fecha. 
 
 CREATE OR ALTER TRIGGER trg_ValidarLimiteCuidador
 ON operacion.ESTANCIA
 AFTER INSERT, UPDATE
 AS
 BEGIN    
-    -- Verificar solo si se modificÛ el ID_CUIDADOR o FECHA_INICIO
+    -- Verificar solo si se modific√≥ el ID_CUIDADOR o FECHA_INICIO
     IF UPDATE(ID_CUIDADOR) OR UPDATE(FECHA_INICIO)
     BEGIN
         IF EXISTS (SELECT 1 FROM 
@@ -154,7 +154,7 @@ BEGIN
             WHERE Conteo.TOTAL_MASCOTAS > 5
         )
         BEGIN
-            RAISERROR('ERROR: Un cuidador no puede tener m·s de 5 mascotas asignadas en un mismo dÌa.', 16, 1);
+            RAISERROR('ERROR: Un cuidador no puede tener m√°s de 5 mascotas asignadas en un mismo d√≠a.', 16, 1);
             ROLLBACK TRANSACTION;
             RETURN;
         END
@@ -165,8 +165,8 @@ GO
 --TRIGGER 4
 ---Controla el inventario de medicamentos al registrar una consulta.
 -- Valida que haya suficiente stock antes de recetar y descuenta
--- autom·ticamente la cantidad del inventario del centro.
-CREATE TRIGGER tr_ActualizarInventarioMedicoConsulta
+-- autom√°ticamente la cantidad del inventario del centro.
+CREATE or alter TRIGGER tr_ActualizarInventarioMedicoConsulta
 ON ventas.INV_MED_CONSULTA
 AFTER INSERT
 AS
@@ -191,7 +191,7 @@ END;
 GO
 
 --TRIGGER 5
---Actualiza la comision de una venta fÌsica y suma dicha comision al sueldo del encargado de 
+--Actualiza la comision de una venta f√≠sica y suma dicha comision al sueldo del encargado de 
 --la tienda que hizo la venta.
 create trigger TR_ACTUALIZA_COMISION_VENTA_FISICA
 on ventas.VENTA
@@ -249,7 +249,7 @@ go
 
 
 --TRIGGER 7
---Permite que estancia solo mantenga la estancia actual de una mascota en un determinado centro. El histÛrico es pasado a
+--Permite que estancia solo mantenga la estancia actual de una mascota en un determinado centro. El hist√≥rico es pasado a
 --Historico_estancia
 create trigger TR_ESTANCIA_ACTUAL_HISTORICO
 on operacion.ESTANCIA
@@ -264,10 +264,10 @@ begin
         having count(*) > 1
     )
     begin
-        throw 56001, 'No se puede registrar la misma mascota m·s de una vez en el mismo centro dentro del mismo insert.', 1;
+        throw 56001, 'No se puede registrar la misma mascota m√°s de una vez en el mismo centro dentro del mismo insert.', 1;
     end;
 
-    -- primero manda al histÛrico la estancia actual si ya existe esa mascota en ese centro
+    -- primero manda al hist√≥rico la estancia actual si ya existe esa mascota en ese centro
     insert into HISTORICO_ESTANCIA(HISTRICIO_ESTANCIA_ID, COSTO, CENTRO_ID, MASCOTA_ID, ID_CUIDADOR, 
 	  ESTACION_ID, FECHA_INICIO, FECHA_FIN, DIAS_ESTANCIA, ID_ESTANCIA)
     select 
@@ -298,7 +298,7 @@ begin
        and i.CENTRO_ID = e.CENTRO_ID;
 
 
-    -- inserta normalmente las mascotas que no tenÌan estancia actual en ese centro
+    -- inserta normalmente las mascotas que no ten√≠an estancia actual en ese centro
     insert into ESTANCIA(ID_ESTANCIA, FECHA_INICIO, DIAS_ESTANCIA, CENTRO_ID, MASCOTA_ID, ID_CUIDADOR, ESTACION_ID)
     select 
         i.ID_ESTANCIA,
@@ -384,7 +384,7 @@ GO
 --PROCEDIMIENTO ALMACENADO 4
 --Permite incluir mediacamentos recetados para cada consulta, y actuliza el stock de los
 --medicamentos utilizados
-create procedure sp_registra_medicamento_consulta
+create or alter procedure sp_registra_medicamento_consulta
 (
     @consulta_id numeric(10,0),
     @medicamento_id numeric(10,0),
@@ -452,11 +452,6 @@ begin
         insert into INV_MED_CONSULTA (INV_MED_ID, CONSULTA_ID, CANTIDAD, COSTO_TOTAL)
         values( @inv_med_id, @consulta_id, @cantidad, @costo_total);
 
-        -- Actualiza el stock
-        update INVENTARIO_MEDICO
-        set cantidad = cantidad - @cantidad
-        where INV_MED_ID = @inv_med_id;
-
         commit transaction;
     end try
     begin catch
@@ -468,7 +463,7 @@ end;
 GO
 
 ---PROCEDIMIENTO ALMACENADO 3
---Permite registrar lista de medicamentos y consulta, actualizando stock para los mÈdicamentos 
+--Permite registrar lista de medicamentos y consulta, actualizando stock para los m√©dicamentos 
 -- incluidos en la consulta
 
 create procedure sp_registra_consulta_tratamiento
@@ -534,14 +529,14 @@ end;
 go
 
 ---PROCEDIMIENTO ALMACENADO 6
----Cancelar una venta en lÌnea (no olvide actualizar el stock y la regla de negocio)
+---Cancelar una venta en l√≠nea (no olvide actualizar el stock y la regla de negocio)
 CREATE PROCEDURE SP_CANCELAR_VENTA_LINEA
     @VENTA_ID NUMERIC(10,0)
 AS
 BEGIN
     DECLARE @TARIFA NUMERIC(10,2);
 
-    -- Se verifica que exista la venta en lÌnea 
+    -- Se verifica que exista la venta en l√≠nea 
     IF NOT EXISTS(SELECT * FROM VENTA
     WHERE VENTA_ID = @VENTA_ID AND TIPO = 'L')
     BEGIN
@@ -549,7 +544,7 @@ BEGIN
         RETURN;
     END
 
-    --Se verifica que no estÈ cancelada
+    --Se verifica que no est√© cancelada
     IF EXISTS(SELECT * FROM LINEA
     WHERE VENTA_ID = @VENTA_ID AND ESTADO_ID = 4)
     BEGIN
@@ -557,7 +552,7 @@ BEGIN
         RETURN;
     END
 
-    -- Calcular tarifa de cancelaciÛn (CS15)
+    -- Calcular tarifa de cancelaci√≥n (CS15)
     SELECT @TARIFA = ISNULL(SUM(COSTO_TOTAL),0) * 0.20
     FROM CARRITO_LINEA
     WHERE VENTA_ID = @VENTA_ID;
@@ -606,7 +601,7 @@ BEGIN
             RETURN;
         END
 
-		/*Verifica si el producto est· en el carrito*/
+		/*Verifica si el producto est√° en el carrito*/
         IF EXISTS (SELECT * FROM CARRITO_LINEA WHERE VENTA_ID = @VENTA_ID
         AND INV_CRETRO_REGIONAL_ID = @INVENTARIO_ID)
         BEGIN
@@ -669,7 +664,7 @@ END
 GO
 
 ---PROCEDIMIENTO ALMACENADO 5
---Registrar una venta fÌsica, incluyendo sus productos incluyendo la actualizaciÛn del stock
+--Registrar una venta f√≠sica, incluyendo sus productos incluyendo la actualizaci√≥n del stock
 --Para esto, reutiliza el procedimiento almacenado 8.
 create or alter procedure sp_registrar_venta_fisica
 (
@@ -712,7 +707,7 @@ begin
         insert into FISICA(VENTA_ID, COMISION, ID_ENCARGADO_TIENDA)
         values(@venta_id, @comision, @id_encargado_tienda);
 
-        --Agrega producto al carrito fÌsico y actualizar stock
+        --Agrega producto al carrito f√≠sico y actualizar stock
         exec SP_AGREGAR_PRODUCTO_CARRITO
             @VENTA_ID = @venta_id,
             @INVENTARIO_ID = @inventario_id,
@@ -748,7 +743,7 @@ END
 GO
 
 ---PROCEDIMIENTO ALMACENADO 9
---Actualizar carrito y stock, en este caso fÌsico
+--Actualizar carrito y stock, en este caso f√≠sico
 CREATE OR ALTER PROCEDURE SP_ACTUALIZAR_CARRITO_STOCK
     @ID_CARRITO INT,
     @CANTIDAD INT,
@@ -800,7 +795,7 @@ GO
 
 
 --PROCEDIMIENTO ALMACENADO 10
---Registrar una venta en lÌnea. Emplea el procedimiento almacenado 8 para el manejo de productos en el carrito
+--Registrar una venta en l√≠nea. Emplea el procedimiento almacenado 8 para el manejo de productos en el carrito
 
 create procedure SP_REGISTRAR_VENTA_LINEA
 (
@@ -880,7 +875,7 @@ BEGIN
         DELETE FROM CARRITO_FISICO
         WHERE @ID_CARRITO = @ID_CARRITO;
 
-        PRINT 'El carrito fÌsico fue eliminado';
+        PRINT 'El carrito f√≠sico fue eliminado';
         RETURN;
     END
 
@@ -892,11 +887,11 @@ BEGIN
         DELETE FROM CARRITO_LINEA
         WHERE ID_CARRITO = @ID_CARRITO;
 
-        PRINT 'El carrito en lÌnea  fue eliminado';
+        PRINT 'El carrito en l√≠nea  fue eliminado';
         RETURN;
     END
 
-    PRINT 'No se encontrÛ el carrito';
+    PRINT 'No se encontr√≥ el carrito';
 END;
 GO
 
