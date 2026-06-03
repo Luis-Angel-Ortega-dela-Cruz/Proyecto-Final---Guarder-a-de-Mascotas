@@ -9,14 +9,13 @@
 use [guarderia_mascotas]
 go
 
-
 ---------------------------------------------------------------
 --VISTAS
 ---------------------------------------------------------------
 
 
 ---------------------------
---CREADOR: Ortega de la Cruz Luis Angel 
+--CREADOR: ThePumitas 
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 /*
@@ -44,7 +43,7 @@ GO
 
 
 ---------------------------
---CREADOR: Ortega de la Cruz Luis Angel 
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 /*
@@ -70,7 +69,7 @@ GO
 
 
 ---------------------------
---CREADOR: Ortega de la Cruz Luis Angel 
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 /*
@@ -102,7 +101,7 @@ GO
 ---------------------------------------------------------------
 
 ---------------------------
---CREADOR: Quezada Yépez Leonardo André
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --TRIGGER 1
@@ -128,7 +127,7 @@ end;
 go
 
 ---------------------------
---CREADOR: Quezada Yépez Leonardo André
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --TRIGGER 2
@@ -157,7 +156,7 @@ end;
 go
 
 ---------------------------
---CREADOR: Ortega de la Cruz Luis Angel
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --TRIGGER 3
@@ -191,7 +190,7 @@ END;
 GO
 
 ---------------------------
---CREADOR: Ortega de la Cruz Luis Angel
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --TRIGGER 4
@@ -224,7 +223,7 @@ END;
 GO
 
 ---------------------------
---CREADOR: Quezada Yépez Leonardo André
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --TRIGGER 5
@@ -262,7 +261,7 @@ go
 
 
 ---------------------------
---CREADOR: Quezada Yépez Leonardo André
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --TRIGGER 6
@@ -291,7 +290,7 @@ end;
 go
 
 ---------------------------
---CREADOR: Quezada Yépez Leonardo André
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --TRIGGER 7
@@ -365,12 +364,48 @@ begin
 
 end;
 go
+
+---------------------------
+--CREADOR: ThePumitas
+--FECHA CREACION: 30/05/2026
+--TRIGGER 8
+--Valida que solo haya un máximo de 3 veterinarios por centro.
+---------------------------
+create or alter trigger trg_validar_maximo_veterinarios
+on operacion.VETERINARIO
+after insert, update
+as
+begin
+    if exists (
+        select 1
+        from operacion.VETERINARIO v
+        inner join operacion.EMPLEADO e
+            on e.EMPLEADO_ID = v.EMPLEADO_ID
+        where e.CENTRO_ID in (
+            select e2.CENTRO_ID
+            from operacion.EMPLEADO e2
+            inner join inserted i
+                on i.EMPLEADO_ID = e2.EMPLEADO_ID
+        )
+        group by e.CENTRO_ID
+        having count(*) > 3
+    )
+    begin
+		raiserror('ERROR: Un centro no puede tener más de 3 veterinarios.', 16, 1);
+        rollback transaction;
+        return;
+    end;
+end;
+go
+
+
+
 ---------------------------------------------------------------
 --PROCEDIMIENTOS ALMACENADOS
 ---------------------------------------------------------------
 
 ---------------------------
---CREADOR: Ortega de la Cruz Luis Angel
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 1
@@ -434,7 +469,7 @@ GO
 
 
 ---------------------------
---CREADOR: Quezada Yépez Leonardo André
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 4
@@ -520,7 +555,7 @@ end;
 GO
 
 ---------------------------
---CREADOR: Quezada Yépez Leonardo André
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 ---PROCEDIMIENTO ALMACENADO 3
@@ -591,7 +626,7 @@ go
 
 
 ---------------------------
---CREADOR: Ortega de la Cruz Luis Angel
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 ---PROCEDIMIENTO ALMACENADO 6
@@ -643,7 +678,7 @@ GO
 
 
 ---------------------------
---CREADOR: Ortega de la Cruz Luis Angel
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 8
@@ -736,7 +771,7 @@ END
 GO
 
 ---------------------------
---CREADOR: Quezada Yépez Leonardo André
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 ---PROCEDIMIENTO ALMACENADO 5
@@ -801,7 +836,7 @@ end;
 go
 
 ---------------------------
---CREADOR: Rodríguez Ruiz Diana Carolina
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 7
@@ -824,7 +859,7 @@ END
 GO
 
 ---------------------------
---CREADOR: Rodríguez Ruiz Diana Carolina
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 ---PROCEDIMIENTO ALMACENADO 9
@@ -880,7 +915,7 @@ END;
 GO
 
 ---------------------------
---CREADOR: Quezada Yépez Leonardo André
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 10
@@ -948,49 +983,38 @@ end;
 go
 
 ---------------------------
---CREADOR: Rodríguez Ruiz Diana Carolina
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 11
 --Borrar el carrito 
 --------------------------- 
 CREATE OR ALTER PROCEDURE SP_ELIMINAR_CARRITO
-    @ID_CARRITO INT
+    @VENTA_ID INT
 AS
 BEGIN
-    SET NOCOUNT ON;
 
-    -- Eliminamos el carrito fisico
-    IF EXISTS (
-        SELECT 1 FROM CARRITO_FISICO WHERE ID_CARRITO = @ID_CARRITO
-    )
-    BEGIN
-        DELETE FROM CARRITO_FISICO
-        WHERE @ID_CARRITO = @ID_CARRITO;
+		--Si existe, eliminamos el carrito
+		IF EXISTS (
+			SELECT 1 FROM CARRITO_FISICO WHERE VENTA_ID = @VENTA_ID
+		)
+		BEGIN
+			DELETE FROM CARRITO_FISICO
+			WHERE VENTA_ID = @VENTA_ID
 
-        PRINT 'El carrito físico fue eliminado';
-        RETURN;
-    END
+			PRINT 'El carrito físico fue eliminado';
+			RETURN;
+		END
+		else
+		begin
+			PRINT 'No se encontró el carrito';
 
-    -- Eliminamos el carrito en line
-    IF EXISTS (
-        SELECT 1 FROM CARRITO_LINEA WHERE ID_CARRITO = @ID_CARRITO
-    )
-    BEGIN
-        DELETE FROM CARRITO_LINEA
-        WHERE ID_CARRITO = @ID_CARRITO;
-
-        PRINT 'El carrito en línea  fue eliminado';
-        RETURN;
-    END
-
-    PRINT 'No se encontró el carrito';
+		end
 END;
 GO
 
-
 ---------------------------
---CREADOR: Rodríguez Ruiz Diana Carolina
+--CREADOR: ThePumitas
 --FECHA CREACION: 30/05/2026
 --DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 12
@@ -1009,8 +1033,6 @@ BEGIN
     WHERE NOMBRE LIKE '%' + @Nombre + '%';
 END
 GO
-
-
 
 ---------------------------
 --CREADOR: The Pumitas
