@@ -1064,3 +1064,28 @@ BEGIN
     RETURN @Tarifa;
 END;
 GO
+
+
+---------------------------
+--CREADOR: The Pumitas
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
+--FUNCIÓN 2
+--Calcular costo de estancia a partir de los dias
+--------------------------- 
+
+CREATE FUNCTION FN_CALCULAR_COSTO_ESTANCIA
+(
+    @DIAS NUMERIC(3,0)
+)
+RETURNS NUMERIC(10,0)
+AS
+BEGIN
+    RETURN @DIAS * 500
+END
+GO
+
+SELECT dbo.FN_CALCULAR_COSTO_ESTANCIA(5) AS COSTO_TOTAL;
+
+DROP FUNCTION FN_CalcularCostoEstancia;
+GO
