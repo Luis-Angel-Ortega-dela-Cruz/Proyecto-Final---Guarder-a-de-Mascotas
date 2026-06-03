@@ -1076,3 +1076,43 @@ create synonym dbo.MASCOTA_ENFERMEDAD for operacion.MASCOTA_ENFERMEDAD;
 create synonym dbo.RAZA for operacion.RAZA;
 create synonym dbo.VETERINARIO for operacion.VETERINARIO;
 go
+
+
+-- INDICES
+-- 1. Índices para busquedas por campos unicos (CURP, USUARIO, CORREO)
+CREATE NONCLUSTERED INDEX idx_cliente_curp ON operacion.CLIENTE (CURP);
+CREATE NONCLUSTERED INDEX idx_cliente_usuario ON operacion.CLIENTE (USUARIO);
+CREATE NONCLUSTERED INDEX idx_cliente_correo ON operacion.CLIENTE (CORREO);
+CREATE NONCLUSTERED INDEX idx_empleado_curp ON operacion.EMPLEADO (CURP);
+CREATE NONCLUSTERED INDEX idx_empleado_usuario ON operacion.EMPLEADO (USUARIO);
+GO
+
+-- 2. Índices para reportes por rangos de fecha
+CREATE NONCLUSTERED INDEX idx_venta_fecha ON ventas.VENTA (FECHA);
+CREATE NONCLUSTERED INDEX idx_consulta_fecha ON operacion.CONSULTA (FECHA);
+CREATE NONCLUSTERED INDEX idx_estancia_fecha_inicio ON operacion.ESTANCIA (FECHA_INICIO);
+CREATE NONCLUSTERED INDEX idx_historico_fecha_inicio ON operacion.HISTORICO_ESTANCIA (FECHA_INICIO);
+GO
+
+-- 3.Indices para las llaves foraneas
+CREATE NONCLUSTERED INDEX idx_venta_cliente_id ON ventas.VENTA (CLIENTE_ID);
+CREATE NONCLUSTERED INDEX idx_estancia_mascota_id ON operacion.ESTANCIA (MASCOTA_ID);
+CREATE NONCLUSTERED INDEX idx_estancia_centro_id ON operacion.ESTANCIA (CENTRO_ID);
+CREATE NONCLUSTERED INDEX idx_consulta_mascota_id ON operacion.CONSULTA (MASCOTA_ID);
+GO
+
+-- 4. Índice para buscador de productos
+CREATE NONCLUSTERED INDEX idx_producto_nombre ON ventas.PRODUCTO (NOMBRE);
+GO
+
+
+-- 5 Índice compuesto para TARJETA
+-- Evita que un cliente tenga dos tarjetas con el mismo número
+CREATE UNIQUE NONCLUSTERED INDEX idx_unique_tarjetaCliente ON operacion.TARJETA (CLIENTE_ID, NUMERO);
+GO
+
+-- 6 Índice UNIQUE compuesto para MASCOTA
+-- Evita que un cliente tenga dos mascotas con el mismo nombre
+CREATE UNIQUE NONCLUSTERED INDEX idx_unique_mascotaCliente ON operacion.MASCOTA (CLIENTE_ID, NOMBRE);
+
+
