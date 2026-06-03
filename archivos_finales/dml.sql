@@ -1009,3 +1009,36 @@ BEGIN
     WHERE NOMBRE LIKE '%' + @Nombre + '%';
 END
 GO
+
+
+
+---------------------------
+--CREADOR: The Pumitas
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
+--FUNCIÓN 1
+--Calcula el costo de la tarifa 
+--de envío basado en la distancia
+--------------------------- 
+
+CREATE OR ALTER FUNCTION fn_calcular_tarifa_envio
+(@CostoCompra NUMERIC(10, 2), @Distancia   NUMERIC(4, 0))
+RETURNS NUMERIC(10, 2)
+AS
+BEGIN
+    DECLARE @Tarifa NUMERIC(10, 2);
+    
+    -- Si la compra es mayor o igual a $400
+    IF @CostoCompra >= 400
+        SET @Tarifa = 0;
+    ELSE
+    BEGIN
+        -- Si la compra es menor a 400 pesos, se cobra $40 por km
+        IF @Distancia IS NULL OR @Distancia <= 0
+            SET @Tarifa = 0;
+        ELSE
+            SET @Tarifa = @Distancia * 40;
+    END
+    RETURN @Tarifa;
+END;
+GO
