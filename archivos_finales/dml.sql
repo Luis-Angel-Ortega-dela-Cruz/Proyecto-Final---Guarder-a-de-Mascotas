@@ -1,9 +1,9 @@
-+--AUTORES: Ortega de la Cruz Luis Angel 
+--AUTORES: Ortega de la Cruz Luis Angel 
 --		   Quezada Yépez Leonardo André 
 --		   Rodríguez Ruiz Diana Carolina
 --FECHA: 30/05/2026
 --DESCRIPCIÓN: Creación de triggers, procedimientos almacenados, funciones y vistas solicitadas.
---				Las pruebas son realizadas en trigger.sql
+--			   Las pruebas son realizadas en trigger.sql
 
 
 use [guarderia_mascotas]
@@ -14,11 +14,16 @@ go
 --VISTAS
 ---------------------------------------------------------------
 
+
+---------------------------
+--CREADOR: Ortega de la Cruz Luis Angel 
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 /*
 VISTA 1
 Muestra mascotas junto con la informacion de su dueño.
 */
-
+---------------------------
 CREATE VIEW vw_MascotasClientes AS
 SELECT m.MASCOTA_ID, m.NOMBRE AS NOMBRE_MASCOTA, r.NOMBRE AS RAZA, e.NOMBRE AS ESPECIE, c.CLIENTE_ID,
 c.NOMBRE + ' ' + c.AP_PAT + ' ' + c.AP_MAT AS PROPIETARIO, c.CORREO, c.DOMICILIO
@@ -37,11 +42,16 @@ GO
 --SELECT * FROM vw_MascotasClientes;
 --go
 
+
+---------------------------
+--CREADOR: Ortega de la Cruz Luis Angel 
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 /*
 VISTA 2
 Consulta a la veterinaria con mascota y su veterinario.
 */
-
+---------------------------
 CREATE VIEW vw_ConsultasVeterinarias AS
 SELECT co.CONSULTA_ID, co.FECHA, co.DIAGNOSTICO, co.DETALLES, co.COSTO,
 m.NOMBRE AS MASCOTA, emp.NOMBRE + ' ' + emp.AP_PAT + ' ' + emp.AP_MAT AS VETERINARIO
@@ -58,11 +68,16 @@ GO
 --go
 
 
+
+---------------------------
+--CREADOR: Ortega de la Cruz Luis Angel 
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 /*
 VISTA 3
 Informacion completa de las estancias en guarderia.
 */
-
+---------------------------
 CREATE VIEW vw_EstanciasGuarderia AS
 SELECT es.ID_ESTANCIA, es.FECHA_INICIO, es.FECHA_FIN, es.DIAS_ESTANCIA, es.COSTO, m.NOMBRE AS MASCOTA, 
 cli.NOMBRE + ' ' + cli.AP_PAT + ' ' + cli.AP_MAT AS PROPIETARIO, c.NOMBRE AS CENTRO,
@@ -86,10 +101,14 @@ GO
 --TRIGGERS
 ---------------------------------------------------------------
 
+---------------------------
+--CREADOR: Quezada Yépez Leonardo André
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --TRIGGER 1
 --Permite actualizar el precio de una consulta, sumando el precio de los medicamentos
 --incluidos en cada consulta.
-
+---------------------------
 create trigger tr_actualiza_costo_consulta
 on ventas.INV_MED_CONSULTA
 after insert
@@ -108,8 +127,13 @@ begin
 end;
 go
 
+---------------------------
+--CREADOR: Quezada Yépez Leonardo André
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --TRIGGER 2
 --Permite actualizar el precio de un venta, sumando el precio de los productos incluidos en el carrito
+---------------------------
 create trigger tr_actualiza_costo_venta_fisica
 on ventas.CARRITO_FISICO
 after insert, update, delete
@@ -132,9 +156,13 @@ begin
 end;
 go
 
+---------------------------
+--CREADOR: Ortega de la Cruz Luis Angel
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --TRIGGER 3
---Trigger que valida que un cuidador no tenga más de 5 mascotas asignadas en una misma fecha. 
-
+--Trigger que valida que un cuidador no tenga más de 5 mascotas asignadas en una misma fecha.
+---------------------------
 CREATE OR ALTER TRIGGER trg_ValidarLimiteCuidador
 ON operacion.ESTANCIA
 AFTER INSERT, UPDATE
@@ -162,10 +190,15 @@ BEGIN
 END;
 GO
 
+---------------------------
+--CREADOR: Ortega de la Cruz Luis Angel
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --TRIGGER 4
 ---Controla el inventario de medicamentos al registrar una consulta.
 -- Valida que haya suficiente stock antes de recetar y descuenta
 -- automáticamente la cantidad del inventario del centro.
+---------------------------
 CREATE or alter TRIGGER tr_ActualizarInventarioMedicoConsulta
 ON ventas.INV_MED_CONSULTA
 AFTER INSERT
@@ -190,9 +223,14 @@ BEGIN
 END;
 GO
 
+---------------------------
+--CREADOR: Quezada Yépez Leonardo André
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --TRIGGER 5
 --Actualiza la comision de una venta física y suma dicha comision al sueldo del encargado de 
 --la tienda que hizo la venta.
+---------------------------
 create trigger TR_ACTUALIZA_COMISION_VENTA_FISICA
 on ventas.VENTA
 after update
@@ -223,8 +261,13 @@ end;
 go
 
 
+---------------------------
+--CREADOR: Quezada Yépez Leonardo André
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --TRIGGER 6
 --Permite actualizar el precio de un venta en linea, sumando el precio de los productos incluidos en el carrito
+---------------------------
 create trigger TR_ACTUALIZA_COSTO_VENTA_LINEA
 on ventas.CARRITO_LINEA
 after insert, update, delete
@@ -247,10 +290,14 @@ begin
 end;
 go
 
-
+---------------------------
+--CREADOR: Quezada Yépez Leonardo André
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --TRIGGER 7
 --Permite que estancia solo mantenga la estancia actual de una mascota en un determinado centro. El histórico es pasado a
 --Historico_estancia
+---------------------------
 create trigger TR_ESTANCIA_ACTUAL_HISTORICO
 on operacion.ESTANCIA
 instead of insert
@@ -322,8 +369,13 @@ go
 --PROCEDIMIENTOS ALMACENADOS
 ---------------------------------------------------------------
 
+---------------------------
+--CREADOR: Ortega de la Cruz Luis Angel
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 1
 --Registra una mascota (su estancia) y su brazalete.
+---------------------------
 CREATE PROCEDURE sp_RegistrarMascotaEstanciaBrazalete
 (
     -- MASCOTA
@@ -381,9 +433,14 @@ END;
 GO
 
 
+---------------------------
+--CREADOR: Quezada Yépez Leonardo André
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 4
 --Permite incluir mediacamentos recetados para cada consulta, y actuliza el stock de los
 --medicamentos utilizados
+---------------------------
 create or alter procedure sp_registra_medicamento_consulta
 (
     @consulta_id numeric(10,0),
@@ -462,10 +519,14 @@ begin
 end;
 GO
 
+---------------------------
+--CREADOR: Quezada Yépez Leonardo André
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 ---PROCEDIMIENTO ALMACENADO 3
 --Permite registrar lista de medicamentos y consulta, actualizando stock para los médicamentos 
 -- incluidos en la consulta
-
+---------------------------
 create procedure sp_registra_consulta_tratamiento
 (
     @diagnostico varchar(400),
@@ -528,8 +589,14 @@ begin
 end;
 go
 
+
+---------------------------
+--CREADOR: Ortega de la Cruz Luis Angel
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 ---PROCEDIMIENTO ALMACENADO 6
 ---Cancelar una venta en línea (no olvide actualizar el stock y la regla de negocio)
+---------------------------
 CREATE PROCEDURE SP_CANCELAR_VENTA_LINEA
     @VENTA_ID NUMERIC(10,0)
 AS
@@ -574,9 +641,14 @@ BEGIN
 END
 GO
 
+
+---------------------------
+--CREADOR: Ortega de la Cruz Luis Angel
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 8
 --Registrar productos en un carrito
-
+---------------------------
 CREATE PROCEDURE SP_AGREGAR_PRODUCTO_CARRITO( 
   @VENTA_ID NUMERIC(10,0),
   @INVENTARIO_ID NUMERIC(10,0),
@@ -663,9 +735,14 @@ BEGIN
 END
 GO
 
+---------------------------
+--CREADOR: Quezada Yépez Leonardo André
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 ---PROCEDIMIENTO ALMACENADO 5
 --Registrar una venta física, incluyendo sus productos incluyendo la actualización del stock
 --Para esto, reutiliza el procedimiento almacenado 8.
+---------------------------
 create or alter procedure sp_registrar_venta_fisica
 (
     @cliente_id numeric(10,0),
@@ -723,9 +800,13 @@ begin
 end;
 go
 
+---------------------------
+--CREADOR: Rodríguez Ruiz Diana Carolina
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 7
---Borrar usuario por nombre de usuario 
-
+--Borrar usuario por nombre de usuario
+--------------------------- 
 CREATE PROCEDURE pusuBorrarUsuario
     @Usuario VARCHAR(40)
 AS
@@ -742,8 +823,13 @@ BEGIN
 END
 GO
 
+---------------------------
+--CREADOR: Rodríguez Ruiz Diana Carolina
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 ---PROCEDIMIENTO ALMACENADO 9
 --Actualizar carrito y stock, en este caso físico
+--------------------------- 
 CREATE OR ALTER PROCEDURE SP_ACTUALIZAR_CARRITO_STOCK
     @ID_CARRITO INT,
     @CANTIDAD INT,
@@ -793,10 +879,13 @@ BEGIN
 END;
 GO
 
-
+---------------------------
+--CREADOR: Quezada Yépez Leonardo André
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 10
 --Registrar una venta en línea. Emplea el procedimiento almacenado 8 para el manejo de productos en el carrito
-
+---------------------------
 create procedure SP_REGISTRAR_VENTA_LINEA
 (
     @cliente_id numeric(10,0),
@@ -858,9 +947,13 @@ begin
 end;
 go
 
+---------------------------
+--CREADOR: Rodríguez Ruiz Diana Carolina
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 11
 --Borrar el carrito 
-
+--------------------------- 
 CREATE OR ALTER PROCEDURE SP_ELIMINAR_CARRITO
     @ID_CARRITO INT
 AS
@@ -895,9 +988,14 @@ BEGIN
 END;
 GO
 
+
+---------------------------
+--CREADOR: Rodríguez Ruiz Diana Carolina
+--FECHA CREACION: 30/05/2026
+--DESCRIPCION:
 --PROCEDIMIENTO ALMACENADO 12
 --Buscador de productos usando like
-
+--------------------------- 
 CREATE PROCEDURE pusuBuscarProducto
     @Nombre VARCHAR(40)
 AS
